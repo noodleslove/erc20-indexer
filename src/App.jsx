@@ -8,20 +8,40 @@ import {
   Input,
   SimpleGrid,
   Text,
-} from '@chakra-ui/react';
-import { Alchemy, Network, Utils } from 'alchemy-sdk';
-import { useState } from 'react';
+} from "@chakra-ui/react";
+import { ethers } from "ethers";
+import { Alchemy, Network, Utils } from "alchemy-sdk";
+import { useState } from "react";
+
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount, useChainId } from "wagmi";
+import { mainnet, goerli } from "wagmi/chains";
+
+const chainIdToAlchemyNetwork = {
+  [mainnet.id]: Network.ETH_MAINNET,
+  [goerli.id]: Network.ETH_GOERLI,
+};
 
 function App() {
-  const [userAddress, setUserAddress] = useState('');
-  const [results, setResults] = useState([]);
+  const [userAddress, setUserAddress] = useState("");
+  const [results, setResults] = useState();
   const [hasQueried, setHasQueried] = useState(false);
   const [tokenDataObjects, setTokenDataObjects] = useState([]);
 
+  const { address } = useAccount();
+  const chainId = useChainId();
+
   async function getTokenBalance() {
+    if (
+      !ethers.utils.isAddress(address) ||
+      !ethers.utils.isAddress(userAddress)
+    ) {
+      return;
+    }
+
     const config = {
-      apiKey: '<-- COPY-PASTE YOUR ALCHEMY API KEY HERE -->',
-      network: Network.ETH_MAINNET,
+      apiKey: "Euz4DXzLUyn7gGkJidLRHeyH2x2eU-Vt",
+      network: chainIdToAlchemyNetwork[chainId] || Network.ETH_MAINNET,
     };
 
     const alchemy = new Alchemy(config);
@@ -45,9 +65,9 @@ function App() {
     <Box w="100vw">
       <Center>
         <Flex
-          alignItems={'center'}
+          alignItems={"center"}
           justifyContent="center"
-          flexDirection={'column'}
+          flexDirection={"column"}
         >
           <Heading mb={0} fontSize={36}>
             ERC-20 Token Indexer
@@ -56,13 +76,14 @@ function App() {
             Plug in an address and this website will return all of its ERC-20
             token balances!
           </Text>
+          <ConnectButton />
         </Flex>
       </Center>
       <Flex
         w="100%"
         flexDirection="column"
         alignItems="center"
-        justifyContent={'center'}
+        justifyContent={"center"}
       >
         <Heading mt={42}>
           Get all the ERC-20 token balances of this address:
@@ -83,14 +104,14 @@ function App() {
         <Heading my={36}>ERC-20 token balances:</Heading>
 
         {hasQueried ? (
-          <SimpleGrid w={'90vw'} columns={4} spacing={24}>
+          <SimpleGrid w={"90vw"} columns={4} spacing={24}>
             {results.tokenBalances.map((e, i) => {
               return (
                 <Flex
-                  flexDir={'column'}
+                  flexDir={"column"}
                   color="white"
                   bg="blue"
-                  w={'20vw'}
+                  w={"20vw"}
                   key={e.id}
                 >
                   <Box>
@@ -109,7 +130,7 @@ function App() {
             })}
           </SimpleGrid>
         ) : (
-          'Please make a query! This may take a few seconds...'
+          "Please make a query! This may take a few seconds..."
         )}
       </Flex>
     </Box>
